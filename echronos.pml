@@ -1,17 +1,18 @@
 
+// TODO: need to solve nondeterministic.
 /* eChronos source code
    machine-stm32f4-discovery.kochab-system
    machine-stm32f4-discovery.kochab-sched-demo
 */
-#define NBUSERS 3
-#define NBINTS 3
+#define NBUSERS 2
+#define NBINTS 2
 #define SVC 0
 #define PendSV 1
-#define USER0 4
+#define USER0 (2 + NBINTS)
 #define NONE 254
 #define NBROUTS (2 + NBINTS + NBUSERS)
 
-#define SCHED_INV sched_inv(retSchedInv); assert(retSchedInv)
+#define SCHED_INV do :: atomic { sched_inv(retSchedInv); assert(retSchedInv); break; } od
 #define AWAITS(p, C)                                     \
                     do                                   \
                     :: atomic {                          \
@@ -273,7 +274,7 @@ inline change_events() {
     FOR_LOOP_I {
         if
         :: true -> E[idx] = true;
-        :: true -> skip;
+        //:: true -> skip;
         fi;
     }
     idx = 0;
