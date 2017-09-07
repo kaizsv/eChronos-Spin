@@ -162,7 +162,7 @@ inline interrupt_policy(i, tar, ret) {
     if
     :: tar == SVC || tar == PendSV -> checkStart = 2;
     :: tar >= USER0 && tar < NBROUTS -> checkStart = 0;
-    :: tar >= 2 && tar < (2+NBINTS) -> checkStart = 2;
+    :: tar >= 2 && tar < (2+NBINTS) -> checkStart = tar;
     fi;
     for (idx: checkStart .. checkEnd) {
         if
