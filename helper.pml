@@ -78,12 +78,14 @@ inline sched_policy_inv(ret, tar) {
 }
 
 inline sched_inv(ret) {
-    if
-    :: (AT >= USER0 && AT < NBROUTS) && EIT[PendSV] && !PendSVReq ->
-        handle_events_inv();
-        sched_policy_inv(ret, AT)
-    :: else -> ret = true
-    fi
+    d_step {
+        if
+        :: (AT >= USER0 && AT < NBROUTS) && EIT[PendSV] && !PendSVReq ->
+            handle_events_inv();
+            sched_policy_inv(ret, AT)
+        :: else -> ret = true
+        fi
+    }
 }
 
 inline hardware_init() {
