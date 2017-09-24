@@ -6,7 +6,7 @@
 #include "helper.pml"
 
 #define SCHED_INV sched_inv(retSchedInv); assert(retSchedInv)
-#define AWAITS(p, C) atomic { (AT == p); SCHED_INV; C } // TODO:precondition
+#define AWAITS(p, C) atomic { (AT == p); C; SCHED_INV }
 
 #define SVC_NOW d_step { ATStack[ATtop] = AT; ATtop++; AT = SVC }
 #define PendSVREQUEST d_step { PendSVReq = true }
