@@ -5,8 +5,15 @@
 */
 #include "helper.pml"
 
-#define SCHED_INV sched_inv(retSchedInv); assert(retSchedInv)
-#define AWAITS(p, C) atomic { (AT == p); C; SCHED_INV }
+#define AT_in_U (AT >= USER0 && AT < (NBROUTS))
+#define E_all_false (E[0] == false && E[1] == false)
+
+#define schedule_inv_premise (AT_in_U && EIT[PendSV] && !PendSVReq)
+#define schedule_inv_policy (E_all_false && ((R[0] == true && AT == 4) || (R[1] == true && AT == 5)))
+
+ltl schedule_inv { [] (schedule_inv_premise -> schedule_inv_policy) }
+
+#define AWAITS(p, C) atomic { (AT == p); C }
 
 #define SVC_NOW d_step { ATStack[ATtop] = AT; ATtop++; AT = SVC }
 #define PendSVREQUEST d_step { PendSVReq = true }
@@ -130,8 +137,6 @@ inline ITake(i) {
                 ATStack[ATtop] = AT;
                 ATtop++;
                 AT = i;
-
-                SCHED_INV; // leave AWAIT, postcondition
                 break
             :: else -> skip
             fi
@@ -154,7 +159,7 @@ inline IRet(i) {
 
 // ctxt-switch-preempt.s: 219
 active proctype SVC_p() {
-    bool retInATStack, retPolicy, retSchedInv;
+    bool retInATStack, retPolicy;
     bool retCtxtInv;
     pid checkStart;
     byte idx;
@@ -186,7 +191,7 @@ endSVC_p:
 
 // ctxt-switch-preempt.s: 250
 active proctype PendSV_p() {
-    bool retInATStack, retPolicy, retSchedInv;
+    bool retInATStack, retPolicy;
     bool retCtxtInv;
     pid checkStart;
     byte idx;
@@ -228,7 +233,7 @@ inline change_events() {
 }
 
 active [NBINTS] proctype interrupt_p() {
-    bool retInATStack, retPolicy, retSchedInv;
+    bool retInATStack, retPolicy;
     pid checkStart;
     byte idx;
     assert(PendSV < _pid && _pid < (2 + NBINTS));
@@ -250,7 +255,6 @@ inline change_usersyscall() {
 
 active [NBUSERS] proctype user_p() {
     byte idx;
-    bool retSchedInv;
     mtype userSyscall;
     assert(USER0 <= _pid && _pid < NBROUTS);
     (allRun);
@@ -294,8 +298,6 @@ inline PendSVTake_p() {
                 ATtop++;
                 AT = PendSV;
                 PendSVReq = false;
-
-                SCHED_INV; // leave AWAIT, postcondition
                 break
             :: else -> skip
             fi
@@ -313,7 +315,7 @@ init {
 
     allRun = true;
 
-    bool retInATStack, retPolicy, retSchedInv;
+    bool retInATStack, retPolicy;
     pid checkStart;
 endPendSVTake_p:
     PendSVTake_p();

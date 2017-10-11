@@ -58,13 +58,13 @@ bool E[NBINTS], E_tmp[NBINTS];
                     || (PendSVReq || (E[0] == false && E[1] == false)))
 #define USER_INV USER_PRE; assert(!(AT == _pid && EIT[PendSV]) || !PendSVReq)
 
-inline handle_events_inv() {
+/*inline handle_events_inv() {
     FOR_LOOP_I {
         assert(idx < NBUSERS);
         R[idx] = R[idx] | E[idx]
     }
     idx = 0
-}
+}*/
 
 inline sched_policy_inv(ret, tar) {
     ret = false;
@@ -77,7 +77,7 @@ inline sched_policy_inv(ret, tar) {
     idx = 0
 }
 
-inline sched_inv(ret) {
+/*inline sched_inv(ret) {
     d_step {
         if
         :: (AT >= USER0 && AT < NBROUTS) && EIT[PendSV] && !PendSVReq ->
@@ -86,7 +86,7 @@ inline sched_inv(ret) {
         :: else -> ret = true
         fi
     }
-}
+}*/
 
 inline hardware_init() {
     AT = USER0;
