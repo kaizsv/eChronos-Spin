@@ -123,7 +123,6 @@ inline interrupt_policy(i, tar, ret) {
 inline ITake(i) {
     do
     :: atomic {
-            SCHED_INV; // precondition
             inATStack(i, retInATStack);
             interrupt_policy(i, AT, retPolicy);
             if
@@ -131,6 +130,8 @@ inline ITake(i) {
                 ATStack[ATtop] = AT;
                 ATtop++;
                 AT = i;
+
+                SCHED_INV; // leave AWAIT, postcondition
                 break
             :: else -> skip
             fi
@@ -165,14 +166,12 @@ endSVC_p:
     */
     AWAITS(_pid, SVC_INV; nextT = NONE);
     do
-    :: {
+    :: nextT == NONE ->
             AWAITS(_pid, SVC_INV; copy_E_tmp());
             AWAITS(_pid, SVC_INV; SCHED_PRE_1; handle_events());
             AWAITS(_pid, SVC_INV; SCHED_PRE_1; clear_E());
             AWAITS(_pid, SVC_INV; SCHED_PRE_2; sched_policy())
-       } unless {
-            nextT != NONE -> break
-       }
+    :: else -> break
     od;
 
     /* context-switch */
@@ -199,14 +198,12 @@ endPendSV_p:
     */
     AWAITS(_pid, PendSV_INV; nextT = NONE);
     do
-    :: {
+    :: nextT == NONE ->
             AWAITS(_pid, PendSV_INV; copy_E_tmp());
             AWAITS(_pid, PendSV_INV; SCHED_PRE_1; handle_events());
             AWAITS(_pid, PendSV_INV; SCHED_PRE_1; clear_E());
             AWAITS(_pid, PendSV_INV; SCHED_PRE_2; sched_policy())
-       } unless {
-            nextT != NONE -> break
-       }
+    :: else -> break
     od;
 
     /* context-switch */
@@ -268,11 +265,8 @@ endUser_p:
         AWAITS(_pid, assert(PendSVReq); PendSVENABLE);
         // ghostU -> user
         do
-        :: {
-                AWAITS(_pid, skip)
-           } unless {
-                !PendSVReq -> AWAITS(_pid, break)
-           }
+        :: PendSVReq -> AWAITS(_pid, skip)
+        :: else -> break
         od
     :: userSyscall == block ->
         // ghostU -> syscall
@@ -282,11 +276,8 @@ endUser_p:
         AWAITS(_pid, USER_INV; PendSVENABLE);
         // ghostU -> user
         do
-        :: {
-                AWAITS(_pid, skip)
-           } unless {
-                !PendSVReq -> AWAITS(_pid, break)
-           }
+        :: PendSVReq -> AWAITS(_pid, skip)
+        :: else -> break
         od
     fi;
     goto endUser_p
@@ -295,7 +286,6 @@ endUser_p:
 inline PendSVTake_p() {
     do
     :: atomic {
-            SCHED_INV; // precondition
             inATStack(PendSV, retInATStack);
             interrupt_policy(PendSV, AT, retPolicy);
             if
@@ -304,6 +294,8 @@ inline PendSVTake_p() {
                 ATtop++;
                 AT = PendSV;
                 PendSVReq = false;
+
+                SCHED_INV; // leave AWAIT, postcondition
                 break
             :: else -> skip
             fi
