@@ -1,6 +1,6 @@
 SPIN = spin
 CC = gcc
-CFLAGS = -O2 -w
+CFLAGS = -w
 SPINFLAGS = -DXUSAFE -DCOLLAPSE
 
 TARGET = echronos.pml
@@ -28,12 +28,11 @@ safety_bfs_full: safety_bfs
 ltl_safety_bfs: clean $(OUT)_ltl
 	./$(OUT)
 
-.PHONY: cleanall clean cleantrail
+.PHONY: cleanall clean
 clean:
 	rm -rf $(OUT)*
 
-cleantrail:
+cleanall: clean
 	rm -rf $(TARGET).trail
-
-cleanall: clean cleantrail
+	rm -rf _spin_nvr.tmp
 
