@@ -5,20 +5,20 @@
 */
 #include "helper.pml"
 
-#define AT_in_U (AT >= USER0 && AT < (NBROUTS))
+/*#define AT_in_U (AT >= USER0 && AT < (NBROUTS))
 #define E_all_false (E[0] == false && E[1] == false)
 
-#define schedule_inv_premise (AT_in_U && EIT[PendSV] && !PendSVReq)
+#define schedule_inv_premise (AT_in_U && get_bit(PendSV, EIT) && !PendSVReq)
 #define schedule_inv_policy (E_all_false && ((R[0] == true && AT == 4) || (R[1] == true && AT == 5)))
 
-ltl schedule_inv { [] (schedule_inv_premise -> schedule_inv_policy) }
+ltl schedule_inv { [] (schedule_inv_premise -> schedule_inv_policy) }*/
 
 #define AWAITS(p, C) atomic { (AT == p); C }
 
 #define SVC_NOW d_step { ATStack[ATtop] = AT; ATtop++; AT = SVC }
 #define PendSVREQUEST d_step { PendSVReq = true }
-#define PendSVENABLE d_step { EIT[PendSV] = true }
-#define PendSVDISABLE d_step { EIT[PendSV] = false }
+#define PendSVENABLE d_step { set_bit(PendSV, EIT) }
+#define PendSVDISABLE d_step { clear_bit(PendSV, EIT) }
 
 bool allRun;
 mtype = {signal_send, block};
@@ -133,7 +133,7 @@ inline ITake(i) {
             inATStack(i, retInATStack);
             interrupt_policy(i, AT, retPolicy);
             if
-            :: EIT[i] && !retInATStack && retPolicy ->
+            :: get_bit(i, EIT) && !retInATStack && retPolicy ->
                 ATStack[ATtop] = AT;
                 ATtop++;
                 AT = i;
@@ -149,7 +149,7 @@ inline IRet(i) {
     assert(ATtop > 0);
     interrupt_policy(PendSV, ATStack[ATtop - 1], retPolicy);
     if
-    :: PendSVReq && EIT[PendSV] && !retInATStack && retPolicy ->
+    :: PendSVReq && get_bit(PendSV, EIT) && !retInATStack && retPolicy ->
         AT = PendSV; PendSVReq = false
     :: else ->
         assert(ATtop > 0);
@@ -293,7 +293,7 @@ inline PendSVTake_p() {
             inATStack(PendSV, retInATStack);
             interrupt_policy(PendSV, AT, retPolicy);
             if
-            :: PendSVReq && EIT[PendSV] && !retInATStack && retPolicy ->
+            :: PendSVReq && get_bit(PendSV, EIT) && !retInATStack && retPolicy ->
                 ATStack[ATtop] = AT;
                 ATtop++;
                 AT = PendSV;

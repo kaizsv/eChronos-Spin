@@ -13,7 +13,9 @@
 #define FOR_LOOP_I_SCHED_INALL for (idx: 0 .. (2 + NBINTS - 1))
 #define FOR_LOOP_ROUTS for (idx: 0 .. (NBROUTS - 1))
 
-bool EIT[2 + NBINTS];
+#define get_bit(b, word) (word & (1 << b))
+
+byte EIT;
 bool PendSVReq;
 pid AT, nextT;
 pid ATStack[NBROUTS];
@@ -56,7 +58,7 @@ bool E[NBINTS], E_tmp[NBINTS];
 
 #define USER_PRE assert(!(USER0 <= AT && AT < NBROUTS)            \
                     || (PendSVReq || (E[0] == false && E[1] == false)))
-#define USER_INV USER_PRE; assert(!(AT == _pid && EIT[PendSV]) || !PendSVReq)
+#define USER_INV USER_PRE; assert(!(AT == _pid && get_bit(PendSV, EIT)) || !PendSVReq)
 
 /*inline handle_events_inv() {
     FOR_LOOP_I {
@@ -95,7 +97,7 @@ inline hardware_init() {
     }
     idx = 0;
     FOR_LOOP_I_SCHED_INALL {
-        EIT[idx] = true
+        set_bit(idx, EIT)
     }
     idx = 0
 }
@@ -118,3 +120,14 @@ inline eChronos_init() {
     }
     idx = 0
 }
+
+inline set_bit(b, word)
+{
+    word = word | (1 << b)
+}
+
+inline clear_bit(b, word)
+{
+    word = word & ~(1 << b)
+}
+
