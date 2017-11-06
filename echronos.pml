@@ -98,9 +98,9 @@ inline inATStack(i, ret) {
             if
             :: ATStack[idx] == i -> ret = true; break
             :: else -> skip
-            fi;
+            fi
         }
-        idx = 0;
+        idx = 0
     }
 }
 
@@ -115,12 +115,12 @@ inline interrupt_policy(i, tar, ret) {
             :: tar == SVC || tar == PendSV -> checkStart = 2
             :: tar >= USER0 && tar < NBROUTS -> checkStart = 0
             :: tar >= 2 && tar < (2+NBINTS) -> checkStart = tar
-            fi
+            fi;
             for (idx: checkStart .. CHECKEND) {
                 if
                 :: idx == i -> ret = true; break
                 :: else -> skip
-                fi;
+                fi
             }
             idx = 0
         fi
@@ -154,7 +154,7 @@ inline IRet(i) {
     :: else ->
         assert(ATtop > 0);
         ATtop--; AT = ATStack[ATtop]; ATStack[ATtop] = NONE
-    fi;
+    fi
 }
 
 // ctxt-switch-preempt.s: 219
